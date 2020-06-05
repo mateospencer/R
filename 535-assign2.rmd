@@ -1,0 +1,44 @@
+---
+title: "Spencer - 535 A2"
+author: "Matthew Spencer"
+date: "3/21/2018"
+output: html_document
+---
+In the file “q_data_cluster.csv” contains the results of a questionare that was given to employees at a major company.  Two experts sat in a room asked each employee to define a process or a term, then gave a score of 1 to 5. The data set buda535_q_data.csv contains the data from homework 1, where the rows are individuals and the columns are demographic information and test questions.  For this assignment use PCA and FA to see if you can create 2 (or a few) summary statistics that define expertise in the topics that questions look to find answers to.  To interpret this you should look at only the question data, and focus on the technical and common word differentiation to deal with creating a summary.  Include any insights you may have on the data. 
+```{r data import}
+MyData <- read.csv(file="/Users/Mateo/Desktop/buda535_q_data.csv", header=TRUE, sep=",")
+MyData <- as.data.frame(MyData)
+
+#Removing demographic data
+SubsetData <- subset(MyData, select=c(27:91))
+```
+At first I removed just the categorical data such as Gender or Age. After further analysis and conferring with my team, we decided against using any demographic data and focusing just on the questions themselves. 
+
+```{r PCA Function and Screen Plot}
+#Principle Component Analysis (PCA)
+(p1<-prcomp(SubsetData, scale=TRUE))
+summary(p1)
+names(p1)
+
+#Generating Scree Plot
+plot(p1$sdev^2)
+```
+The elbow here is probably in a PCA component level that I can't handle analytically as it is around 4-6. There is a remarkable drop from the first to the second componenet but not enough to shorten the elbow to only one principle component. Out of the 65 total componeents, by selecting 2 components we are only covering 27% of our data. With 1 component we are only covering 21%. If I were able to analys 5 or 6, Id still only be covering 39 to 42% of the data. 
+
+```{r PCA Scatter Plot and Rotation}
+#Generating PCA Scatter Plot
+library(car)
+y<-as.data.frame(p1$x)
+scatterplot(y$PC1, y$PC2, smooth=FALSE, reg=FALSE, box=F, id.n=5)
+p1$rotation[,1:2]
+```
+Our first primary component (PC1) seems to all be positive numbers (except one by a very small margin). PC2 on the other hand has a mix of values ranging between -.2313 and .2123. My team member Kate pointed out that within PC2 most all the common questions questions have positive values and most all technical have negative values and concluded that PC2 is probably the difference between common and techncial questions (a conclusion I wouldnt have thought to look for on my own.) Further looking into PC2 reveals that the values are all close to zero. I mentioned above the range and nothing is more than .232 from zero in either direction. Our scree plot though shows us that there are some values that are further out. id.n returns five values (as configured in my scatterplot function) that show me what I believe are my highest values. For my current run it is 6  35  71 113 167. Pondering reasons for that these values are higher than the rest yields multiple possibilities: 1. The questions were easier in that more people answered them correctly. 2. The questions were more general knowledge, 3. The group that answered the questionaire all were familiar with the subject matter asked. There are other possibilities of course but that seems like very feasible reasons why those values were higher. What I'm not certain about is if I misread these and these values meant that those questions were actually harder and answered incorrectly more often than the others. If I can assume a rating of 5 on a question is correct then I could assume that category's questions that had higher positive values were those answered more correctly than I could state which if the employees questions were technical or not. If negative values in Common questions are any indicator, than this quesitonaire is more technical in nature or at least the technical questions got higher rated answers. 
+
+```{r Factor Analysis}
+(f1<-factanal(scale(SubsetData), factors=2, rotation="none"))
+```
+It's really interesting to me how this breaks out across factors. If we can assume Factor1 to be a weighted average and Factor 2 takes into account difference between both the technical and common questions then there are some questions that we can see to be quite unique. That's pretty insightful with FCA. For that reason, I'm going to ignore Factor1 and focus my attention on Factor2. Our course notes state that "The uniqueness defines how well a variable is explained by the factors.  The smaller the number the better understanding we have." From that we can infer than that we have the best understanding of Tech1, Tech6, Tech20, and Tech24 (all at least have the most negative values.) Commons 5,8,12,29,29,33,34,37, etc. have values that are most positive. That kind of makes sense to me that a Common question would be less unique but it does mean that we have some questions here that are much harder to explain with factors.
+
+I can not explain why some questions in both Factor1 and Factor2 don't have any values included.
+
+Our p-value is low but not low to where we would want it to be. However, with only two components, we knew we were only covering 27% of the data so I wouldn't be surprised to see a p-value that doesn't mean our usual threshold of .05 or lower. 
