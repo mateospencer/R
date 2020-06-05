@@ -1,0 +1,174 @@
+---
+title: "525 - Module 3"
+author: "Matthew Spencer"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Problem1: 
+The data file jevons in the alr4 package is a study of the weight of 274 gold coins that were collected in 1868 in Manchester, England. For each coin the weight after cleaning was recorded to the nearest 0.001 gram, and the date of the issue. The data includes a summary of this information the variable Age, which is the age of the coin in decades, n, the number of coins with that age, Weight, the average weight of the n coins of that age, SD, the standard deviation of the n coins of that age. The standard for new coins was 7.9876g, and legally the coins had to exceed 7.9379g. Use weighted least squares to analyze the data appropriately to define the relationship between weight and age. Interpret the regression coefficients, and compare the result to using original least squares (no weights) and discuss the differences. How do your predictions at ages 1-5 relate to the legal minimum for a coin? Hint: Plot the relationship of SD to the mean to look to see if the variance is constant. Remember the Variance of any mean is SD^2/n, which you will need to create your weight.
+```{r}
+#Loading alr4 library, jevons data, and help documentation. Viewing summary of Jevons data. 
+library(alr4)
+attach(jevons)
+help(jevons)
+summary(jevons)
+
+#Taking a look at the coin data. Checking for NA's. Only 5 rows so tail isn't necessary. 
+is.na(jevons)
+any(is.na(Weight))
+any(is.na(n))
+head(jevons)
+
+#Initally plotting data to see relationship between Weight and Age.
+plot(Weight~Age, data=jevons)
+plot(SD^2~Age, data=jevons)
+
+#Using Weighted Least Squares to analyze the data between weight and age. Then viewing the coefficient data for the model.
+modelJevonsWLS <- lm(Weight~Age, weights=n/(SD^2), data=jevons)
+summary(modelJevonsWLS)
+
+#Fitting a model without weights and viewing its coefficients for comparison to weighted model.
+modelJevonsOLS <- lm(Weight~Age,data=jevons)
+summary(modelJevonsOLS)
+
+#Plotting the two models. The black line are the points for the WLS, the blue line are the points for OLS.
+plot(Weight~Age, data=jevons)
+abline(modelJevonsWLS)
+abline(modelJevonsOLS, col=4)
+
+#Combining plots in a 2x2 grid
+par(mfrow=c(2,2))
+plot(modelJevonsWLS)
+plot(modelJevonsOLS)
+```
+
+#Response: 
+First plot shows the weight decrease as age increases. In the second plot we see that variance increases as age increases. These are both explained by wear and tear on the coins over time. When using Weighted Least Squares, I placed greater emphasis on the age of coins that had the least variance. I accomplished this by using n/SD^2 where the formula will give me higher value numbers for newer coins with the higher n value and lower standard deviation values. For the coefficients, the Itercept (7.9965) is the Weight when Age is equal to zero. According to Age, for every year increase in age, the weight of the coins go down (this is observed via the Coefficient -.0238 therefore this means for every unit (one decade), weight of a coin goes down an average of .0238 grams.) For the model without weights, it doesn't look that difference based on the coefficients. It's Intercept and Age are close in value. What I did notice here though is that the weights are different due to greater variance that we accounted for with the weighted model. This equaled weight being 7.9999 grams when age is equal to zero and also equaled a coefficient of -.0253 (.0253 grams decrease for every decade of age on the coins.) When we plot them both together, we see in the black line (for WLS) that it fits well with a linear trend for 1 and is close to blue line (OLS) afterwards and gets furthur away. We expect that by weighting Age 1 heavily which matters most to us. The blue line doesn't take into account the variability towards the end of the line for the older coins.
+```{r}
+#Using dataframes here for predictions regarding weights. My previous code here was very clunky and a lot to interpret so using prediction1$fit[1] etc. to only show the fit value instead of the whole range. 
+pred1 = predict(modelJevonsWLS, newdata=data.frame(Age=1), interval="prediction", se.fit=TRUE)
+
+pred2 = predict(modelJevonsWLS, newdata=data.frame(Age=2), interval="prediction", se.fit=TRUE)
+
+pred3 = predict(modelJevonsWLS, newdata=data.frame(Age=3), interval="prediction", se.fit=TRUE)
+
+pred4 = predict(modelJevonsWLS, newdata=data.frame(Age=4), interval="prediction", se.fit=TRUE)
+
+pred5 = predict(modelJevonsWLS, newdata=data.frame(Age=5), interval="prediction", se.fit=TRUE)
+
+Prediction_Weight <- (c(pred1$fit[1], pred2$fit[1], pred3$fit[1], pred4$fit[1], pred5$fit[1]))
+Age_Group <- (c(1,2,3,4,5))
+df <- data.frame(Age_Group, Prediction_Weight)
+df
+```
+
+#Additional Observation: 
+The prediction model seems very similar to the initial plotted data in that the coins in the older age groups (3,4,5) are not of legal weight for use as currency. So, given that the the age group is in decades in 30 years time the coins will have worn down enough to no longer be legal tender. 
+
+
+#Problem2: 
+Using the speed data in the alr4 package, fit a model that estimates the stopping distance (Distance) given the speed is known (Speed). Create a scatter plot, and then investigate a possible transformation that allows OLS to fit this model. Interpret the model and present any insights you may have.
+```{r}
+#Loading alr4 package, speed data, and help documentation. Viewing dimensions, head, tail, summary of data and finally checking for NA's.
+library(alr4)
+attach(stopping)
+help(stopping)
+dim(stopping)
+head(stopping)
+tail(stopping)
+summary(stopping)
+any(is.na(Speed))
+any(is.na(Distance))
+DistanceSpeedmod <- lm(Distance~Speed,data=stopping)
+summary(DistanceSpeedmod)
+```
+
+```{r}
+#Plotting Stopping Distance in relation to Speed.
+plot(Distance~Speed)
+abline(lm(Distance~Speed, col=2))
+
+#Creating a linear model of Distance to Speed and looking at the summary of the data. 
+StoppingModel <- lm(Distance~Speed)
+summary(StoppingModel)
+
+#Trying multiple transformations
+#Plotting with squareroot of Distance to see its impact on plot/model. 
+plot(sqrt(Distance)~Speed)
+StoppingModel2 <-lm(sqrt(Distance)~Speed)
+abline(StoppingModel2, col=2)
+summary(StoppingModel2)
+#Combining plots and utilizing BoxCox transformation
+par(mfrow=c(2,2))
+plot(StoppingModel)
+boxCox(StoppingModel)
+#Trying powerTransform
+summary(powerTransform(cbind(Distance,Speed)))
+
+#Combining plots again and displaying them. 
+par(mfrow=c(2,2))
+plot(StoppingModel2)
+```
+
+```{r}
+#Prediction model for Stopping Distance based on Known Speed
+StoppingPrediction <- predict(StoppingModel2, newdata=data.frame(Speed=40), interval="prediction", se.fit=TRUE)
+StoppingPrediction
+StoppingPrediction <- predict(StoppingModel2, newdata=data.frame(Speed=20), interval="prediction", se.fit=TRUE)
+StoppingPrediction
+StoppingPrediction <- predict(StoppingModel2, newdata=data.frame(Speed=10), interval="prediction", se.fit=TRUE)
+StoppingPrediction
+```
+
+#Response: 
+The data initially does not have any surprises. As one would assume, stopping distance increases with speed. Looking at the plots you can see plots that are scattered inconsistently from the mean trendline (non constant variance) but what was consistent is that the greater the speed, the greater the variance thus making a cone/alligators mouth shape. Because of the NCV, I used boxcox and powertransform, and squareroot of distance to find the best transformation of the data. This in some ways achieved the same thing that past use of log of variables in reigning in the variance. Overall, it looks like the squareroot model makes the variance much more consistent (according to fits in the Residuals vs Fitted plots). I was also a little curious about what stopping distance would be like at different speeds. 40mph's stopping distance is sqrt of 11.03 feet, 20mph is 5.98 feet, and 10 mph is 3.46 feet. From this it is apparent that the stopping distance doesn't double even if the speed doubles but it is close. With more values I would be able to see how the trend works at higher speeds. 
+
+
+#Problem3: 
+Please look at the help file for the data in this problem. We have been asked to analyze the MinnLand data in the alr4 package. For now we will analyze it without using the region variable included in the data (DO NOT USE THIS IN YOUR MODEL YET). Using all other variables, fit a model to explain acrePrice using all other variables. Decide on appropriate transformations and diagnostic methods for the data. Fit your final model and provide any insights it provides on the data. You should include any interpretation you can provide.
+```{r}
+#Attaching MinnLand, loading help documentaiton, getting an overview of the data, and looking for NA's.
+attach(MinnLand)
+help(MinnLand)
+head(MinnLand)
+tail(MinnLand)
+dim(MinnLand)
+any(is.na(acrePrice))
+any(is.na(improvements))
+any(is.na(acres))
+any(is.na(tillable))
+any(is.na(crpPct))
+any(is.na(productivity))
+
+#Setting Region and Financing to Null (not mentioned in question but was mentioned in collaborate)
+MinnLand$region <- NULL
+MinnLand$financing <- NULL
+
+#Plotting data points
+MinnModel <- lm(acrePrice~improvements + year + acres + tillable + crpPct + productivity)
+plot(acrePrice~improvements)+year+acres+tillable+crpPct+productivity
+summary(MinnModel)
+plot(MinnModel)
+
+#Too many data points for the previous plot. Trying different approach.
+boxCox(MinnModel)
+powerTransform(MinnModel)
+summary(powerTransform(MinnModel))
+
+#PowerTransformation not as effective as BoxCox, going to try log
+logMinnModel <-lm(log(acrePrice)~improvements + year + acres + tillable + crpPct + productivity)
+par(mfrow=c(2,2))
+plot(logMinnModel)
+
+#a little NCV occurring here. Seeing few fitted values from the log, going to use a sqrt transformation from here. 
+sqrtMinnModel <- lm(sqrt(acrePrice)~improvements + year + acres + tillable + crpPct + productivity)
+par(mfrow=c(2,2))
+plot(sqrtMinnModel)
+```
+
+#Response: 
+Wow. Working with messy data that is large is challenging. There seemed to be little differences between most of the transformations. The sqrt seemed to be the best as there was a lot of NCV and few fitted values. There were a lot of zeros in the summaries which raised some red flags for me about the data. In a perfect world, I'd try to clean up the data set to have no zeros/NAs. realistically, I know that i can't always do that. It's hard to make any definitive interferences about the data as there is a whole lot of noise here that is hard to eliminate even with trasnformations. If I had to make some predictions on this data, I believe that perhaps with weighted least squares and squareroot that I could make some accurate predictions for some of the values such as acre price but for the most part I would not feel very confident in the values. If the lesson here is that big data sets and real data are messy and difficult to work with even with super awesome things like transformations then I totally got the message. 
