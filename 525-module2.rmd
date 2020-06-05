@@ -1,0 +1,222 @@
+---
+title: "Module 2 Homework - 525"
+author: "Matthew Spencer"
+date: "9/1/2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+##Loading library.
+library(alr4)
+##Attaching UBS Prices
+attach(UBSprices)
+##Viewing the dimensions of the UBS Prices data. 
+dim(UBSprices)
+##Loading the help documentation for UBS Prices
+help(UBSprices)
+##Viewing the head and tail of the data to see what we are working with here. 
+head(UBSprices)
+tail(UBSprices)
+##Checking for missing data fields in both datasets. 
+any(is.na(bigmac2003))
+any(is.na(bigmac2009))
+```
+
+##Problem1
+##In the data file UBSprices in the alr4 package plot the variable bigmac2009 vs bigmac2003.  Explain why simple linear regression would not be appropriate for this model.  Plot log(bigmac2009) (the natural log of the variable bigmac2009) vs log(bigmac2003) and explain why this is more of an appropriate representation.  Fit the linear model with log(bigmac2009) as the response(Y) and log(bigmac2003) as the predictor (X), and interpret the regression coefficients.  Explain what the slope coefficient of log(bigmac2003) means in the context of the prices of bigmac2009.
+
+#Question: Plot the variable bigmac2009 vs bigmac2003. Explain why simple linear regression would not be appropriate for this model.
+#Method: Plotting the variables bigmac2009 vs bigmac2003 (or the prices of a Big Mac in minutes of labor between the years 2009 and 2003.) Then adding a fitting line of the mean of Y to help see vertical variance. 
+```{r}
+##plots the variables bigmac2009 vs bigmac2003.
+plot(UBSprices$bigmac2009~UBSprices$bigmac2003)
+##This adds a best fitting line reflecting the mean of y to help judge the vertical variance of the data points. 
+abline(lm(bigmac2009~bigmac2003,data=UBSprices))
+```
+#Observation: Simple Linear Regression would not be appropriate here because it has non-constant variance. The dependent variable Y (bigmac2009) does not have a linear relationship in this plot to the independent variable (bigmac2003). In other words, you could not draw a "good" line through these points and have vertical variance be the same/"constant" distribution everywhere. 
+
+
+#Question: Plot log(bigmac2009) (the natural log of the variable bigmac2009) vs log(bigmac2003) and explain why this is more of an appropriate representation.
+Method: Plotting the logs of both variables. 
+```{r}
+##Plotting logs against each other. 
+plot(log(UBSprices$bigmac2009)~log(UBSprices$bigmac2003))
+```
+#Observation: This took the large values and made them small with a log. It pulls the big values closer to the data. Doing this better linearizes the relationship between bigmac2009 and bigmac2003. Log simplifies the model by taking out the residual values/outliers that were causing problems earlier in simple linear regression. 
+
+
+#Question: Fit the linear model with log(bigmac2009) as the response(Y) and log(bigmac2003) as the predictor (X), and interpret the regression coefficients.  
+#Method: Taking the linear model with the logs of response and predictor and saving those to a model variable. Then Plotting the log of the values, generating a straight line as best as possible through the data points. Then displaying the Coefficients witih mod. 
+```{r}
+mod<-lm(log(bigmac2009)~log(bigmac2003),data=UBSprices)
+plot(log(UBSprices$bigmac2009)~log(UBSprices$bigmac2003))
+abline(mod,col=2)
+
+##Using mod and summary of mod to show the coefficients intercept and slope. 
+mod
+summary(mod)
+exp(.8029)
+```
+#Observation: slope cofficient is .8029. The intercept is .6403 (the average of the log of bigmac2009 when the log of bigmac2003 is 0. This shows that the relationship between the two is that when bigmac2003 increases one unit, bigmac2009 increases .8029 or 2.23 minutes of labor. 
+
+
+##Problem2
+##Using the oldfaith data in the alr4 package, fit a simple linear regression to predict the variable interval from the variable duration (read the help file for an explanation of the data).  How would you explain these results to a non-technical person who came to a visitor's center and asked how long of a wait until the next eruption?  Assume someone has just arrived and the last eruption lasted 250 seconds, provide a 95% confidence interval and prediction interval to the customer, but discuss them in a way that is easily understood.  
+```{r}
+##Attaching Old Faithful Data.
+attach(oldfaith)
+##Viewing the head and tail of the data to see what we are working with here. 
+head(oldfaith)
+tail(oldfaith)
+##Checking for missing data in both datasets.
+any(is.na(oldfaith))
+```
+
+
+#Question: Using the oldfaith data in the alr4 package, fit a simple linear regression to predict the variable interval from the variable duration (read the help file for an explanation of the data).
+#Method:Plotting the Duration and Interval data without logs to see what the raw data looks like and looking for relationships. Also adding a best fitting line reflecting the mean of y to help judge the vertical variance of the data points.
+```{r}
+##Plotting the Duration and Interval data. 
+plot(oldfaith$Duration~oldfaith$Interval)
+abline(lm(Duration~Interval,data=oldfaith))
+plot(log(oldfaith$Duration)~log(oldfaith$Interval))
+
+##Creating a model of the log of both Duration and Interval to chop down outliers and instances of large variance from the mean. 
+modeloldfaith<-lm(log(Duration)~log(Interval),data=oldfaith)
+plot(log(oldfaith$Duration)~log(oldfaith$Interval))
+##Adding line for the mean of Y.
+abline(modeloldfaith,col=2)
+##Viewing the model and summary data to see coefficient intercept and slope.
+modeloldfaith
+summary(modeloldfaith)
+##Creating Confidence Interval of 95%. 
+predict(modeloldfaith,newdata=data.frame(Duration=250),Interval="Confidence",se.fit=TRUE)
+```
+#Observation: The interval/number of minutes until the next eruption depends on the duration of time in seconds of the previous eruption. If the current eruption lasts 250 seconds, we can say with 95% confidence that the mean of the wait for the next eruption will be between 
+######need to look more into this. 
+
+
+#Question: How would you explain these results to a non-technical person who came to a visitor's center and asked how long of a wait until the next eruption?
+#Response: A non-technical answer would be that the answer depends on the previous eruption and how long it lasted as the longer the eruption, the longer it will be until the next eruption.  
+
+
+#Question: Assume someone has just arrived and the last eruption lasted 250 seconds, provide a 95% confidence interval and prediction interval to the customer, but discuss them in a way that is easily understood.  
+
+
+##Problem3
+##Fit the model lm(fertility~log(ppgdp)+pctUrban) from the UN11 data in the alr4 package.  Interpret the regression coefficients, but also provide and interpret the added variable plots and any insights they may provide.  
+#Method:Loading the UN11 data, attaching it for use. Loading help documentation and taking a look at dimensions, head, and tail of data in dataset. 
+```{r}
+#Loading library 'alr4'
+library(alr4)
+#attaching UN11 for use. 
+attach(UN11)
+#Loading the help documentation for UN11.
+help(UN11)
+#Viewing the dimensions for UN11
+dim(UN11)
+#Viewing the head and tail of the data in this dataset.
+head(UN11)
+tail(UN11)
+```
+#Observation: Seem to have 199 countires represented in data ranging from Afghanistan to Zimbabwe. 
+
+
+#Question: Fit the model lm(fertility~log(ppgdp)+pctUrban) from the UN11 data in the alr4 package. 
+#Method: Generating model UNmodel of the data in question. 
+```{r}
+UNmodel<-lm(fertility~log(ppgdp)+pctUrban,data=UN11)
+plot(fertility~log(ppgdp)+pctUrban)
+abline(UNmodel,col=2)
+```
+#Observation: There are a lot of data points here with no specific trend being obvious. I attempted adding a line for the mean of fertility but the mean with all of the outliers and wide variance offset the data by a large amount where no line was apparent. 
+
+
+#Method: To make better sense of the data, I'm modeling the logs of both fertility and pctUrban. I'm then adding a line for the mean of y. 
+```{r}
+modelUNlogs<-lm(log(fertility)~log(pctUrban),data=UN11)
+plot(log(UN11$fertility)~log(UN11$pctUrban))
+##Adding line for the mean of Y.
+abline(modelUNlogs,col=2)
+```
+#Observation: Using the logs made the data much more understandable. The line representing the mean of y is more relevant to the data points. 
+
+
+#Question: Interpret the regression coefficients, but also provide and interpret the added variable plots and any insights they may provide.
+#Method: Viewing the model generated above as well as the summary to evaluate the coefficients. 
+```{r}
+UNmodel
+summary(UNmodel)
+```
+#Observation: There is a negative slope (-0.6151) here which means that the value of y decreases as x increases. In this data, that means fertility decreases when the environment becomes more Urban. The intercept of 7.993 is the expected mean value of fertility when the Urban percentage is 0. 
+
+
+##Problem4
+##The Transact data in the car package comes from a bank, where we have two type of transactions t1 and t2.  The response to our model is time and t1 and t2 are the predictors.  Fit four models all with time as the response and the predictors as:
+##1) t1 and t2 (2 predictors) 
+##2) the average of t1 and t2, and the difference of t1 and t2 (t1-t2) (2 predictors)
+##3) t2 and the difference of t1 and t2 (t1-t2) (2 predictors)
+##4) t1, t2, the average of t1 and t2, and then the difference of t1 and t2 (t1-t2) (4 predictors)
+##Discuss the similarities and differences of these models, discuss any issues that arise with these models and provide insights to what they mean.  Out of the 4 models which are you most likely to use and why?  How did the communication of the results play into your decision. 
+##(Optional) Using the UN11 in the alr4 package (read the help file), fit a regression (also plot the data and add the fitted line to show), the relationship between log(fertility) (natural log of the variable fertility) and log(ppgdp) (natural log of the variable ppgdp).  Interpret the meaning of the regression coefficients and test the hypothesis that the slope coefficient is equal to 0. ##How would you interpret this test in simple terms? 
+##Please ask me if you'd like more optional problems. 
+```{r}
+#loading library 'car'
+library(car)
+#attaching Transact for use. 
+attach(Transact)
+#loading help documentation for Transact
+help(Transact)
+#Viewing dimensions for Transact
+dim(Transact)
+#Viewing the head and tail of the data set Transact
+head(Transact)
+tail(Transact)
+```
+#Observation: There are only six rows of data with three columns. 
+
+
+##Question: Fit four models all with time as the response and the predictors as:
+##1) t1 and t2 (2 predictors) 
+##2) the average of t1 and t2, and the difference of t1 and t2 (t1-t2) (2 predictors)
+##3) t2 and the difference of t1 and t2 (t1-t2) (2 predictors)
+##4) t1, t2, the average of t1 and t2, and then the difference of t1 and t2 (t1-t2) (4 predictors)
+
+
+#Method:Generating four models with time as the reposne and predictors as dictated.
+```{r}
+#Model 1: Predictors t1 and t2
+model1<-lm(time~t1+t2,data=Transact)
+plot(time~t1+t2)
+model1
+
+#Model 2: Average of t1,t2 and difference of t1,t2 as predictors
+Differencet1t2=(t1-t2)
+avgt1t2=(t1+t2)
+model2<-lm(time~avgt1t2+Differencet1t2,data=Transact)
+plot(time~avgt1t2+Differencet1t2)
+model2
+
+#Model 3: t2 and difference of t1 and t2 as predictors
+model3<-lm(time~t2+Differencet1t2,data=Transact)
+plot(time~t2+Differencet1t2)
+model3
+
+#Model 4: t1, t2, Average of t1 and t2, Difference between predictors t1 and t2
+model4<-lm(time~t1+t2+avgt1t2+Differencet1t2,data=Transact)
+plot(time~t1+t2+avgt1t2+Differencet1t2)
+model4
+```
+#Observation: 
+#######Need to look into this furthur
+
+#Question: Discuss the similarities and differences of these models, discuss any issues that arise with these models and provide insights to what they mean.  Out of the 4 models which are you most likely to use and why?  How did the communication of the results play into your decision. 
+#Observation: 
+#####Need to review this. 
+
