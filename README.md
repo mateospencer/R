@@ -1,2 +1,20 @@
 # R
-Various R projects
+Kia ora! Haere mai!
+Herein are examples of R projects that I've done over the years. A brief overview of my background with R. 
+
+I was introduced to R in graduate school. I earned my M.S. in Business Data Analytics from West Virginia University in 2018. In this year long program, I learned R, machine learning (supervised and unsupervised learning), Simple and Multi-Linear Regression,	model evaluation, statistical computing, data mining, predictive modeling, Hadoop, MapReduce, Spark, SQL, Shiny, Tableau, and much much more. 
+
+My graduate capstone, entitled ‘Convex Clustering and	Multi-View Learning on Clinical Data for Improved ACO	Quality	Measure	Tracking' involved taking convex clustering which is primarily used in computational biology and attempting to use it against electronic health record data to find causes for hospital readmissions based on patient diagnosis. For this capstone, I used a computational biology dataset of 60,000 intensive care unit admissions over a 12 year period, built a Shiny app and R package (cvxTrain), wrote my findings, and presented my research to my corporate sponsors who ended up offering me a job as Lead Data Scientist where I founded and led my own Data Science team. 
+
+That company, a Fortune 500 Science/Research/Technology company in the U.S., hired me to create and lead a Data Science team for their commercial healthcare unit within in their split Defense/Health/Intel software factory in Morgantown, WV. I created a team of 2 Data Engineers and 3 Data Scientists (including myself) and we worked full stack from data ingestion from customers electronic health record systems to ETL with PySpark/Hadoop to persistive data stores and data streams within Kafka and Spark Streaming. We used BI tools but also did a fair amount of our data visuals from scratch, we managed our own engineering practices, our own R Studio servers, and our own systems (Jupyter notebooks and Kubernetes containers). We cut our ETL from 16 hours when I started to near real time. We were able to create json data objects and write to AWS S3 for our software engineers to utilize within our commerical software applications we sold to our customers. We also did consulting and R&D work. I also managed university recruiting, Data Scientist/Engineer training, spoke on public roundtables about topics such as AI and machine learning, and managed sponsored University led research topics. 
+
+This was not my first Data Scientist job however. Seeing the value of analytics, I founded my own analytics company (Wanderstar Analytics) and consulted for various organizations for their analytics needs. A Google Founder's confidential startup was my main line of business and we were able to help an island community use location tracking from mobile phones, air and sea traffic data, and census data, and other records to provide a count of how many visitors the island received, when those visitors arrived, where they were from, where they liked to spend their time on the island, etc. 
+
+I also worked for 3 years for the FBI as a Solution Architect where I led the way for the Criminal Justice Information Services to move towards data science by establishing analytics frameworks, writing white papers on current and potential capabilities, creating an internal open source community, and eventually implementing the Crime Data Explorer (https://crime-data-explorer.fr.cloud.gov/) to provide transparency into the crime data gathered by states and submitted to the FBI. 
+
+I love R because its the first langauge that I really threw myself into. I've been learning more and more Python lately though as the Data Science world goes more in that direction but the bulk of my analytics work has been in R. 99% of my code however is proprietary to my employers and therefore not available to share here but I will try to include various items from my studies, personal projects, etc. to demostrate how I tackle data science problems, my knowledge in the field, and my coding capability. 
+
+Thank you for your time and consideration!
+Matthew
+
+
