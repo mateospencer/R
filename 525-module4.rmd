@@ -1,0 +1,207 @@
+---
+title: "Spencer - 525 Module 4 Homework"
+author: "Matthew Spencer"
+date: "9/16/2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Problem 1: 
+Using the MinnLand data in the alr4 package (read the help file for more info on data), fit a model using log(acrePrice) as the response and year as the predictor (use year as a factor). In general housing prices in the US were increasing from 2002-2006, and then began to fall in 2007. Is this true for Minnesota? Use a boxplot and your regression coefficents to explain. Report the results any other statistical test we have learned to give insight into the implications of your model. (Make sure you check your residual plots).
+```{r}
+#Attaching MinnLand, loading help documentaiton and getting an overview of the data.
+library(alr4)
+attach(MinnLand)
+data(MinnLand)
+help(MinnLand)
+str(MinnLand)
+head(MinnLand)
+tail(MinnLand)
+dim(MinnLand)
+
+#looking for NA's
+any(is.na(acrePrice))
+any(is.na(year))
+
+#using year as a factor with a basic breakdown to see observations over time period from 2002 to 2011 and then put those into a table, and view the data as a boxplot
+yearF <- as.factor(MinnLand$year)
+Mod1 <- lm(log(acrePrice)~yearF, data=MinnLand)
+table(yearF)
+boxplot(log(acrePrice)~yearF,data=MinnLand)
+#checking Residual plots for Model 1
+summary(Mod1)
+par = (mfrow=c(2,2))
+plot(Mod1)
+#Viewing the data with the log of acrePrice to see it's impact on the data and plotting it.
+Mod2 <- lm(log(acrePrice)~yearF*region,data=MinnLand)
+summary(Mod2)
+plot(log(acrePrice)~year,data=MinnLand)
+```
+
+#Observation: 
+Based on the data in the boxplot, it appears the price went down for farms in Minnesota from 2002 to 2003 despite an overall trend of increases in the United States. Overall however, Minnesota did see prices steadily increase every year, even where it looks like it is down in the boxplot. This is due to the boxplot not representing the means but rather the quantiles. By factoring the values by years and then viewing their coefficients, you can see pretty steady increases. In 2007, national general housing prices began to fall but not so for farms in Minnesota which did not start to fall until 2011. Based on the coefficients, the p-value is very low (pretty much 0) which have us reject our null hypothesis that there is no significant difference between populations (the United States as a whole and Minnesota). Therefore, with an alternate hypothesis we can say there is a significant difference between Minnesota farm land sales steady increase in price vs. the downward trend of the US general house prices. I did observe a high pvalue for 2004 which was a redflag to me but otherwise the data seemed ok.
+
+#Continued Testing and Implications
+```{r}
+#Other tests
+ncvTest(Mod1)
+anova(Mod1)
+boxCox(Mod2)
+powerTransform(Mod2)
+
+#updating via boxCox recommendations
+plot((acrePrice^1.5)~year, data=MinnLand)
+
+#Checking Residual Plots
+par(mfrow=c(2,2))
+plot(Mod2)
+```
+
+#Observation: 
+NCV test seems to show there is no non-constant variance. My boxCox doesn't appear to be effective. Looking at my data's smallest standard deviation, it doesn't produce any normality in regards to distribution of my data points. Since boxCox doesn't check for normality, I have to check my transformed data for normality using the probability plot in NormalQ-Q.
+
+
+#Problem 2: 
+Using the MinnLand data again, fit two models (with year as a factor in both) M1<-lm(log(acrePrice)~year+region, data=MinnLand) M2<-lm(log(acrePrice)~year+region+year*region, data=MinnLand) Explain the difference between the two models, then provide a comparison of the models. Using the model you define as "best" provide an explanation of the coefficients. (HINT: An EFFECTS PLOT makes this easier visually).
+
+```{r}
+#Factoring the years again. 
+MinnLand$yearF2 <- as.factor(MinnLand$year)
+table(MinnLand$yearF2)
+boxplot(log(acrePrice)~yearF2,data=MinnLand)
+
+#fitting first model with years as a factor.
+M1<-lm(log(acrePrice)~yearF2+region, data=MinnLand)
+summary(M1)
+plot(log(acrePrice)~yearF2+region, data=MinnLand)
+
+#fitting second model with years as a factor
+M2<-lm(log(acrePrice)~yearF2+region+year*region, data=MinnLand)
+summary(M2)
+plot(log(acrePrice)~yearF2+region+yearF2*region, data=MinnLand)
+
+#attempting effects plot
+plot(allEffects(M1))
+plot(allEffects(M2))
+```
+
+```{r}
+#notvery happy with the linear effects, attempting anova here to see if I can get something more useful out of the models.
+anova(M1,M2)
+```
+
+#Observation:
+There are quite a few differences here. I hope that I didn't completely overthink it all but I wanted to take the opportunity to break out the data in different ways for comparison sake. In my first model (M1), I take the log of acrePrice (to clean up the datapoints a little) and then show the factored year and region data in their own separate plots. In my second model (M2), I show the factored the interactive variables year and region together. I personally like M1 better but I find M2 to be more useful. I like M1 because I like the fact that each value is viewed independent of the other values. At a higher level, I prefer to have visualizations of data where I can clearly understand all the calculations together without having to trust what is lumped together to reflect a data point on a plot. If I then need to create another model, I can always use Anova or another function to compare two values side by side or see how other functions impact the data represented in a M1 by itself. M2 is the better model though because I can derive other information from it and better use it to make predictions.  
+Looking at the data itself, we have a small value in M2 in our null hypothesis meaning that there is significance between year and region. As we discussed in the Collaborate, the baseline is our first year (2002) and thus our coefficients show us that our interecept is the log of AcrePrice. The coefficients then show the change each year from the year prior of the price of an acre of farmland. The coefficients reflect that the prices increase overtime (despite a National Trend that did not during the same period). M1 and M2 both reflect the increases year over year but Model M2 gives us a p-value to assist us in disproving our null hypothesis. I used the plot(allEffects) function here to show the trend is similar across all regions but it's very apparant throughout my work on this problem that there are stronger regions than others when it comes to the amount of increase each year with sales. It is also no surprise that the Twin Cities: Minneapolis/St. Paul in the South East region having the highest price range in the state. 
+
+
+#Problem 3: ((DO NOT ATTACH SALARY)) 
+The salary data in the alr4 package concerns salary at a small midwestern college for a legal case concerning pay discrimination against women. That data refers to tenure track faculty only. The variables are degree (MS/PhD), rank (Assistant Prof/ Assoc Prof/ Prof), sex (M/F), Year (number of years in current rank), ysdeg (years since highest degree), and salary (academic year salary in dollars). The code
+
+t.test(salary$salary[salary$sex=="Male"], salary$salary[salary$sex=="Female"], alternative="greater")
+
+produces a two sample t-test, with hypothesis NH: The mean salary of males in this population is less than or equal to the mean salary of females AH: The mean salary of males in this population is greater than the mean salary of females Run this code, and comment on the results of this test comparing your p-value to a 0.05 level, does anything change at a 0.01 level? We know there could be other factors that effect salary, implement a model using all the variables in the data with salary as the response and the rest as predictors, comment on the effect of sex. Fit a second model removing rank as a factor, now comment on the effect of sex in the model? What insight does this provide on the data? (Hint: Assistant Prof salary < Assoc Prof Salary < Prof Salary in the same field)
+
+```{r}
+#loading data, getting an overview of it, and loading help documentation
+data(salary)
+head(salary)
+tail(salary)
+help(salary)
+#checking for NA's
+any(is.na(salary$rank))
+any(is.na(salary$salary))
+any(is.na(salary$sex))
+
+#performing t test, fitting models, viewing summaries
+t.test(x=salary$salary[salary$sex=="Male"],y=salary$salary[salary$sex=="Female"],alternative = "greater")
+mod2 <- lm(salary~sex,data=salary)
+summary(mod2)
+
+mod3 <- lm(salary~sex+degree+rank+year+ysdeg,data=salary)
+summary(mod3)
+
+mod4 <- lm(salary~sex+degree+rank+year+ysdeg+sex*rank+sex*degree,data=salary)
+summary(mod4)
+
+mod5 <- lm(salary~.-rank,data=salary)
+summary(mod5)
+
+confint(mod3)
+anova(mod3,mod4)
+
+table(salary$rank,salary$sex)
+```
+
+#Observations
+I believe this is the first time in this course that we have utilized the t test but it's valuable here because it does an excellent job of showing the different the significance level makes to your overvall values. In some ways this is a good example of how dangerous a p-value can be (from one of our earlier Group Homework assignments). At the standard signficiance threshold of .05 we would come to the conclusion that men make more than women in this sample. Howeer when we look at .01, the results change as we can not reject our null hypothesis with its current p-value. To back up this observation we have to look at our M3 model coefficients. The intercept for M3 is the salary a male assistant professor with a degree and no experience makes starting out. For males, this is 15,746.05 (and a reminder that one will never get rich by being a professor). For females this is actually more: 16912.42 (or the value in the sexFemale row of 1166.37 more than males.) This however only tells us that in this very small sample size that the females make more with no experience. To get a better idea of differences in pay though we have to look more at how genders are treated throughout their careers with promotions, etc. Our model 5 (M5) shows us what happens when we completely take rank out of the equation. Unfortunately, the pay difference becomes much more apparant in the males favor. The difference between male and female is 1286.54 (and even more if you were to look at those with a PhD (3299.35)). Overall, we can see too that women also don't occupy the higher paying PhD positions. Their underrepresentation in this subset of data may skew our values here since we do have such a small sample size but with a larger population, an underrepresentation of women in higher roles probably also continues a wage gap between genders. 
+
+
+#Problem 4: 
+Using the Wool data in the alr4 package fit the full main effects model using Cycles as the response and all other variables as predictors, and interpret the Tukey HSD intervals and test with regard to load.
+```{r}
+#loading data and getting an overview of the data points. 
+data(Wool)
+head(Wool)
+tail(Wool)
+str(Wool)
+help(Wool)
+summary(Wool)
+
+#checking for NAs
+any(is.na(Wool$cycles))
+any(is.na(Wool$len))
+any(is.na(Wool$amp))
+any(is.na(Wool$load))
+
+#fitting a model of the Wool data without factoring. 
+ModelWool <- lm(cycles~len+amp+load, data=Wool)
+summary(ModelWool)
+par(mfrow=c(2,2))
+plot(ModelWool)
+
+#diagnostics of ModelWool
+anova(ModelWool)
+boxCox(ModelWool)
+ncvTest(ModelWool)
+
+#Making changes based on diagnostics
+ModelWool2 <- lm(log(cycles)~len+amp+load, data=Wool)
+summary(ModelWool2)
+par(mfrow=c(2,2))
+plot(ModelWool2)
+
+#diagnostics of ModelWool2
+anova(ModelWool2)
+boxCox(ModelWool2)
+ncvTest(ModelWool2)
+
+#Now attempting factoring to clean up data as it still doesnt look right to me. 
+loadFactor <- as.factor(Wool$load)
+lenFactor <- as.factor(Wool$len)
+ampFactor <- as.factor(Wool$amp)
+
+#fitting model with factors
+ModelWool3 <- lm(cycles~lenFactor+loadFactor+ampFactor, data=Wool)
+summary(ModelWool3)
+
+ModelWool4 <- lm(log(cycles)~lenFactor+loadFactor+ampFactor, data=Wool)
+summary(ModelWool4)
+
+par(mfrow=c(2,2))
+plot(ModelWool3)
+plot(ModelWool4)
+anova(ModelWool3)
+anova(ModelWool4)
+
+#Tukey's Range Test (HSD)
+TukeyHSD(aov(log(cycles)~lenFactor+ampFactor+loadFactor,data=Wool), "loadFactor")
+```
+
+#Observations:
+I took a longer path to get this figured out than what was probalby necessary but ended up keeping most of my steps here for comparison to the factored model that I ended up utilizing to reach a conclusion. After my first two models, I thought that I had some problems with variance in my models but log helped the most with variance in cycles according to the recommendations of the Box Cox test. I was pretty certain this was best but anova steered me in another direction and caused me to remove log. Factoring seemed the best means of addressing the data overall. I struggled with the risiduals here because the gaps between data points on the models in summary didn't seem to get better no matter what I did. Factoring ultimately smoothed out the plotted points in my residuals though which what me satisifed with the results. Tukey HSD was useful. The load factor of 50-40 had both the largest difference (-0.7852390) and still the lowest p-value by far which gives me the most confidence in its answer that 50kg having the most impact on cycle count. 
