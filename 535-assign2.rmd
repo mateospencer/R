@@ -6,7 +6,7 @@ output: html_document
 ---
 In the file “q_data_cluster.csv” contains the results of a questionare that was given to employees at a major company.  Two experts sat in a room asked each employee to define a process or a term, then gave a score of 1 to 5. The data set buda535_q_data.csv contains the data from homework 1, where the rows are individuals and the columns are demographic information and test questions.  For this assignment use PCA and FA to see if you can create 2 (or a few) summary statistics that define expertise in the topics that questions look to find answers to.  To interpret this you should look at only the question data, and focus on the technical and common word differentiation to deal with creating a summary.  Include any insights you may have on the data. 
 ```{r data import}
-MyData <- read.csv(file="/Users/Mateo/Desktop/buda535_q_data.csv", header=TRUE, sep=",")
+MyData <- read.csv(file="buda535_q_data.csv", header=TRUE, sep=",")
 MyData <- as.data.frame(MyData)
 
 #Removing demographic data
